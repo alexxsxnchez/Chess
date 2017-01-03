@@ -5,28 +5,36 @@ import java.awt.*;
  */
 public class Square {
 
-    private int x;
-    private int y;
+    private Point position;
     private Colour colour;
+    private Piece heldPiece = null;
+    private Color borderColour = null;
 
     public Square(int x, int y, Colour colour) {
-        this.x = x;
-        this.y = y;
+        position = new Point(x, y);
         this.colour = colour;
     }
-
+    public void setHeldPiece(Piece piece) {
+        heldPiece = piece;
+    }
+    public void setIsFocused(boolean isFocused) {
+        Color borderColour;
+        if(isFocused) {
+            borderColour = Color.DARK_GRAY;
+        }
+        else {
+            borderColour = null;
+        }
+        this.borderColour = borderColour;
+    }
     public Colour getColour() {
         return colour;
     }
-    public Dimension getLocation() {
-        return new Dimension(x, y);
+    public Point getPosition() {
+        return position;
     }
     public Piece getHeldPiece() {
-        if((x == 2 || x == 5) && (y == 0 || y == 7)) {
-            Colour colour = Colour.WHITE;
-            if (y == 0) colour = Colour.BLACK;
-            return new Bishop(x, y, colour);
-        }
-        return null;
+        return heldPiece;
     }
+    public Color getBorderColour() { return borderColour; }
 }

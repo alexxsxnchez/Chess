@@ -3,9 +3,8 @@
  */
 public class Bishop extends Piece {
 
-    public Bishop(int x, int y, Colour pieceColour) {
-        super(x, y, pieceColour, PieceType.BISHOP);
-
+    public Bishop(Colour pieceColour, Chessboard chessboard) {
+        super(PieceType.BISHOP, pieceColour, chessboard);
 
     }
 }

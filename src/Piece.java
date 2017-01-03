@@ -6,17 +6,16 @@ import java.awt.*;
  */
 public abstract class Piece {
 
-    protected int x;
-    protected int y;
+    protected Point position = new Point();
     protected Colour pieceColour;
     protected PieceType pieceType;
+    protected Chessboard chessboard;
     private Image image = null;
 
-    public Piece(int x, int y, Colour pieceColour, PieceType pieceType) {
-        this.x = x;
-        this.y = y;
+    public Piece(PieceType pieceType, Colour pieceColour, Chessboard chessboard) {
         this.pieceColour = pieceColour;
         this.pieceType = pieceType;
+        this.chessboard = chessboard;
         storeImage();
     }
 
@@ -24,28 +23,52 @@ public abstract class Piece {
         String fileName = "";
         switch(pieceType) {
             case BISHOP:
-                if (pieceColour == Colour.BLACK) fileName = "blackbishop.png";
-                else fileName = "whitebishop.png";
+                if (pieceColour == Colour.BLACK) {
+                    fileName = "blackbishop.png";
+                }
+                else {
+                    fileName = "whitebishop.png";
+                }
                 break;
             case KING:
-                if (pieceColour == Colour.BLACK) fileName = "blackking.png";
-                else fileName = "whiteking.png";
+                if (pieceColour == Colour.BLACK) {
+                    fileName = "blackking.png";
+                }
+                else {
+                    fileName = "whiteking.png";
+                }
                 break;
             case KNIGHT:
-                if (pieceColour == Colour.BLACK) fileName = "blackknight.png";
-                else fileName = "whiteknight.png";
+                if (pieceColour == Colour.BLACK) {
+                    fileName = "blackknight.png";
+                }
+                else {
+                    fileName = "whiteknight.png";
+                }
                 break;
             case PAWN:
-                if (pieceColour == Colour.BLACK) fileName = "blackpawn.png";
-                else fileName = "whitepawn.png";
+                if (pieceColour == Colour.BLACK) {
+                    fileName = "blackpawn.png";
+                }
+                else {
+                    fileName = "whitepawn.png";
+                }
                 break;
             case ROOK:
-                if (pieceColour == Colour.BLACK) fileName = "blackrook.png";
-                else fileName = "whiterook.png";
+                if (pieceColour == Colour.BLACK) {
+                    fileName = "blackrook.png";
+                }
+                else {
+                    fileName = "whiterook.png";
+                }
                 break;
             case QUEEN:
-                if (pieceColour == Colour.BLACK) fileName = "blackqueen.png";
-                else fileName = "whitequeen.png";
+                if (pieceColour == Colour.BLACK) {
+                    fileName = "blackqueen.png";
+                }
+                else {
+                    fileName = "whitequeen.png";
+                }
                 break;
         }
         try {
@@ -56,11 +79,12 @@ public abstract class Piece {
         }
     }
 
-    public int getX() {
-        return x;
+    public void setPosition(int x, int y) {
+        position.x = x;
+        position.y = y;
     }
-    public int getY() {
-        return y;
+    public Point getPosition() {
+        return position;
     }
     public Colour getPieceColour() {
         return pieceColour;
@@ -71,5 +95,7 @@ public abstract class Piece {
     public Image getImage() {
         return image;
     }
-
+    public Square getSquare() {
+        return chessboard.getSquare(position.x, position.y);
+    }
 }
