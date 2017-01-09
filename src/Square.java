@@ -3,12 +3,14 @@ import java.awt.*;
 /**
  * Created by alexsanchez on 2016-12-20.
  */
+
 public class Square {
 
     private Point position;
     private Colour colour;
     private Piece heldPiece = null;
     private Color borderColour = null;
+    private Color highlightColour = null;
 
     public Square(int x, int y, Colour colour) {
         position = new Point(x, y);
@@ -27,6 +29,18 @@ public class Square {
         }
         this.borderColour = borderColour;
     }
+
+    public void setHighlightColour(Color colour) {
+        highlightColour = colour;
+    }
+
+    public AlphaComposite getComposite() {
+        int rule = AlphaComposite.SRC_OVER;
+        float alpha = 0.4f;
+        return(AlphaComposite.getInstance(rule, alpha));
+    }
+
+    public Color getHighlightColour() { return highlightColour; }
     public Colour getColour() {
         return colour;
     }
