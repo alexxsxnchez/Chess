@@ -100,21 +100,9 @@ public abstract class Piece {
     }
 
     public boolean stopsCheck(Move move) {
-        boolean isValid = true;
         chessboard.makeMove(move);
-        ArrayList<Move> enemyMoves = new ArrayList<>();
-        for(Piece enemyPiece : chessboard.getPieces(!(pieceColour == Colour.WHITE))) {
-            enemyPiece.clearPossibleMoves();
-            enemyPiece.findPotentialMoves(); // *NOT* findPossibleMoves
-            enemyMoves.addAll(enemyPiece.getPossibleMoves());
-            enemyPiece.clearPossibleMoves();
-        }
-        for(Move enemyMove : enemyMoves) {
-            if(enemyMove.getCapturedPiece() instanceof King) {
-                isValid = false;
-                break;
-            }
-        }
+        King king = chessboard.getKing(pieceColour == Colour.WHITE);
+        boolean isValid = !king.isInCheck();
         chessboard.undoMove();
         return isValid;
     }

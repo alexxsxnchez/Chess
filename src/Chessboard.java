@@ -203,4 +203,10 @@ public class Chessboard {
         }
         return blackPieces;
     }
+    public King getKing(boolean getWhite) {
+        if(getWhite) {
+            return whiteKing;
+        }
+        return blackKing;
+    }
 }

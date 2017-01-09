@@ -1,3 +1,5 @@
+import java.util.ArrayList;
+
 /**
  * Created by alexsanchez on 2017-01-03.
  */
@@ -39,5 +41,21 @@ public class King extends Piece {
             targetSquare = chessboard.getSquare(x, y);
             addMoveToPossibleMoves(new Move(this, getSquare(), targetSquare));
         }
+    }
+
+    public boolean isInCheck() {
+        ArrayList<Move> enemyMoves = new ArrayList<>();
+        for(Piece enemyPiece : chessboard.getPieces(!(pieceColour == Colour.WHITE))) {
+            enemyPiece.clearPossibleMoves();
+            enemyPiece.findPotentialMoves(); // *NOT* findPossibleMoves
+            enemyMoves.addAll(enemyPiece.getPossibleMoves());
+            enemyPiece.clearPossibleMoves();
+        }
+        for(Move enemyMove : enemyMoves) {
+            if(enemyMove.getCapturedPiece() == this) {
+                return true;
+            }
+        }
+        return false;
     }
 }
