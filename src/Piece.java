@@ -83,8 +83,41 @@ public abstract class Piece {
         }
     }
 
+    public void findPossibleMoves() {
+        findPotentialMoves();
+        removeImpossibleMoves();
+    }
     public abstract void findPotentialMoves();
 
+    public void removeImpossibleMoves() {
+        ArrayList<Move> invalidMoves = new ArrayList<>();
+        for(Move potentialMove : possibleMoves) {
+            if(!stopsCheck(potentialMove)) {
+                invalidMoves.add(potentialMove);
+            }
+        }
+        possibleMoves.removeAll(invalidMoves);
+    }
+
+    public boolean stopsCheck(Move move) {
+        boolean isValid = true;
+        chessboard.makeMove(move);
+        ArrayList<Move> enemyMoves = new ArrayList<>();
+        for(Piece enemyPiece : chessboard.getPieces(!(pieceColour == Colour.WHITE))) {
+            enemyPiece.clearPossibleMoves();
+            enemyPiece.findPotentialMoves(); // *NOT* findPossibleMoves
+            enemyMoves.addAll(enemyPiece.getPossibleMoves());
+            enemyPiece.clearPossibleMoves();
+        }
+        for(Move enemyMove : enemyMoves) {
+            if(enemyMove.getCapturedPiece() instanceof King) {
+                isValid = false;
+                break;
+            }
+        }
+        chessboard.undoMove();
+        return isValid;
+    }
     /*
      * describes movement for pieces that can move over several squares in a single direction
      * this method is ONLY to be used by the ROOK, QUEEN, and BISHOP

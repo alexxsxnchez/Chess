@@ -235,7 +235,7 @@ public class Canvas extends JPanel implements MouseListener, MouseMotionListener
 
     private void pieceSelected() {
         selectedPiece.clearPossibleMoves();
-        selectedPiece.findPotentialMoves();
+        selectedPiece.findPossibleMoves();
         selectedPiece.highlightPossibleSquares(true);
     }
 
