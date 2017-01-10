@@ -18,4 +18,10 @@ public class Rook extends Piece {
         //search down
         searchDistanceMoves(0, 1);
     }
+
+    public void castle() {
+        int x = (getPosition().x * 2) / 7 + 3;
+        Square finalSquare = chessboard.getSquare(x, position.y);
+        chessboard.makeMove(new Move(this, getSquare(), finalSquare));
+    }
 }

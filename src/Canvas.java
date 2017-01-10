@@ -5,6 +5,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.*;
+import java.util.Locale;
 
 public class Canvas extends JPanel implements MouseListener, MouseMotionListener{
 
@@ -326,7 +327,7 @@ public class Canvas extends JPanel implements MouseListener, MouseMotionListener
         Square squareAtMouse = getSquareAtMouse();
         if(squareAtMouse != null) {
             Piece piece = squareAtMouse.getHeldPiece();
-            if(piece.isSelectable()) {
+            if(piece != null && piece.isSelectable()) {
                 selectedPiece = squareAtMouse.getHeldPiece();
                 updateSelectedPiecePosition();
                 pieceSelected();
@@ -347,6 +348,11 @@ public class Canvas extends JPanel implements MouseListener, MouseMotionListener
         if(squareAtMouse != null && move != null) {
             translateSelectedPiece(squareAtMouse);
             chessboard.makeMove(move);
+            if(move instanceof CastleMove) {
+                Rook rook = ((CastleMove) move).getCastlingRook();
+                selectedPiece = rook;
+                translateSelectedPiece(rook.getSquare());
+            }
             moveSuccessful = true;
         }
         else {
@@ -356,7 +362,6 @@ public class Canvas extends JPanel implements MouseListener, MouseMotionListener
         if(moveSuccessful) {
             game.newTurn();
         }
-        repaint();
     }
 
     @Override

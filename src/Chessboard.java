@@ -136,8 +136,13 @@ public class Chessboard {
         }
         putPiece(piece, finalSquare);
         initSquare.setHeldPiece(null);
-
         piece.setHasMoved(true);
+
+        if(move instanceof CastleMove) {
+            Rook castlingRook = ((CastleMove) move).getCastlingRook();
+            castlingRook.castle();
+        }
+
         moves.push(move);
         highlightLastMove(true);
     }
@@ -158,6 +163,9 @@ public class Chessboard {
         if(capturedPiece != null) {
             putPiece(capturedPiece, finalSquare);
             getPieces(capturedPiece.getPieceColour() == Colour.WHITE).add(capturedPiece);
+        }
+        if(move instanceof CastleMove) {
+            undoMove();
         }
         if(move.isFirstTimePieceMoved()) {
             piece.setHasMoved(false);
