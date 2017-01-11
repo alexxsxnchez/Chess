@@ -234,12 +234,6 @@ public class Canvas extends JPanel implements MouseListener, MouseMotionListener
         repaint(); //TODO: repaint only squares
     }
 
-    private void pieceSelected() {
-        selectedPiece.clearPossibleMoves();
-        selectedPiece.findPossibleMoves();
-        selectedPiece.highlightPossibleSquares(true);
-    }
-
     public void flipBoard() {
         long initTime = System.currentTimeMillis();
         double initAngle = angle;
@@ -330,7 +324,9 @@ public class Canvas extends JPanel implements MouseListener, MouseMotionListener
             if(piece != null && piece.isSelectable()) {
                 selectedPiece = squareAtMouse.getHeldPiece();
                 updateSelectedPiecePosition();
-                pieceSelected();
+                selectedPiece.clearPossibleMoves();
+                selectedPiece.findPossibleMoves();
+                selectedPiece.highlightPossibleSquares(true);
             }
         }
         repaint();
@@ -347,6 +343,11 @@ public class Canvas extends JPanel implements MouseListener, MouseMotionListener
         Move move = selectedPiece.getMove(squareAtMouse);
         if(squareAtMouse != null && move != null) {
             translateSelectedPiece(squareAtMouse);
+            if(move instanceof PromotionMove) {
+                PromotionMove promotionMove = (PromotionMove) move;
+                Pawn pawn = (Pawn) promotionMove.getPiece();
+                promotionMove.setPromotionType(pawn.askHumanWhichPromotion(this));
+            }
             chessboard.makeMove(move);
             if(move instanceof CastleMove) {
                 Rook rook = ((CastleMove) move).getCastlingRook();

@@ -142,6 +142,15 @@ public class Chessboard {
             Rook castlingRook = ((CastleMove) move).getCastlingRook();
             castlingRook.castle();
         }
+        else if(move instanceof PromotionMove) {
+            PromotionMove promotionMove = (PromotionMove) move;
+            PieceType promotionType = promotionMove.getPromotionType();
+            removePiece(piece);
+
+            Piece promotionPiece = addNewPiece(finalSquare.getPosition().x, finalSquare.getPosition().y,
+                    piece.getPieceColour(), promotionType);
+            promotionMove.setPromotionPiece(promotionPiece);
+        }
 
         moves.push(move);
         highlightLastMove(true);
@@ -157,6 +166,12 @@ public class Chessboard {
         Square initSquare = move.getInitSquare();
         Square finalSquare = move.getFinalSquare();
 
+        if(move instanceof PromotionMove) {
+            Piece promotedPiece = ((PromotionMove) move).getPromotionPiece();
+            removePiece(promotedPiece);
+            getPieces(piece.getPieceColour() == Colour.WHITE).add(piece);
+        }
+
         putPiece(piece, initSquare);
         finalSquare.setHeldPiece(null);
 
@@ -167,6 +182,7 @@ public class Chessboard {
         if(move instanceof CastleMove) {
             undoMove();
         }
+
         if(move.isFirstTimePieceMoved()) {
             piece.setHasMoved(false);
         }
