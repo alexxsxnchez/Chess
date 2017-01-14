@@ -3,7 +3,7 @@
  */
 public class Move {
     private Piece piece;
-    private Piece capturedPiece;
+    protected Piece capturedPiece;
     private Square initSquare;
     private Square finalSquare;
     private boolean firstTimePieceMoved;

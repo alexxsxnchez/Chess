@@ -101,7 +101,7 @@ public abstract class Piece {
 
     public boolean stopsCheck(Move move) {
         chessboard.makeMove(move);
-        King king = chessboard.getKing(pieceColour == Colour.WHITE);
+        King king = chessboard.getKing(pieceColour);
         boolean isValid = !king.isInCheck();
         chessboard.undoMove();
         return isValid;

@@ -10,12 +10,7 @@ public class Chessboard {
     private Game game;
     public static final int NUM_OF_SQUARES = 8;
     private Square[][] boardSquares = new Square[NUM_OF_SQUARES][NUM_OF_SQUARES];
-    private ArrayList<Piece> whitePieces = new ArrayList<>();
-    private ArrayList<Piece> blackPieces = new ArrayList<>();
     private Stack<Move> moves = new Stack<>();
-    private King whiteKing;
-    private King blackKing;
-
 
     public Chessboard(Game game) {
         this.game = game;
@@ -71,8 +66,7 @@ public class Chessboard {
         switch (pieceType) {
             case KING: {
                 piece = new King(colour, this);
-                if(colour == Colour.WHITE) whiteKing = (King) piece;
-                else blackKing = (King) piece;
+                game.getPlayer(colour).setKing((King) piece);
                 break;
             }
             case QUEEN: {
@@ -96,13 +90,7 @@ public class Chessboard {
                 break;
             }
         }
-        //the active pieces arraylist just holds the "alive" pieces on the board for each team
-        if (colour == Colour.WHITE) {
-            whitePieces.add(piece);
-        }
-        else {
-            blackPieces.add(piece);
-        }
+        getPieces(colour).add(piece);
         piece.setPosition(x, y);
         //let the square know that it holds a piece
         getSquare(x, y).setHeldPiece(piece);
@@ -117,12 +105,7 @@ public class Chessboard {
     public void removePiece(Piece piece) {
         piece.getSquare().setHeldPiece(null);
         piece.setPosition(-1, -1);
-        if(piece.getPieceColour() == Colour.WHITE) {
-            whitePieces.remove(piece);
-        }
-        else {
-            blackPieces.remove(piece);
-        }
+        getPieces(piece.getPieceColour()).remove(piece);
     }
 
     public void makeMove(Move move) {
@@ -149,9 +132,9 @@ public class Chessboard {
 
             Piece promotionPiece = addNewPiece(finalSquare.getPosition().x, finalSquare.getPosition().y,
                     piece.getPieceColour(), promotionType);
+
             promotionMove.setPromotionPiece(promotionPiece);
         }
-
         moves.push(move);
         highlightLastMove(true);
     }
@@ -169,15 +152,20 @@ public class Chessboard {
         if(move instanceof PromotionMove) {
             Piece promotedPiece = ((PromotionMove) move).getPromotionPiece();
             removePiece(promotedPiece);
-            getPieces(piece.getPieceColour() == Colour.WHITE).add(piece);
+            getPieces(piece.getPieceColour()).add(piece);
         }
 
         putPiece(piece, initSquare);
         finalSquare.setHeldPiece(null);
 
         if(capturedPiece != null) {
-            putPiece(capturedPiece, finalSquare);
-            getPieces(capturedPiece.getPieceColour() == Colour.WHITE).add(capturedPiece);
+            if(move instanceof EnPassantMove) {
+                putPiece(capturedPiece, ((EnPassantMove) move).getCapturedPawnSquare());
+            }
+            else {
+                putPiece(capturedPiece, finalSquare);
+            }
+            getPieces(capturedPiece.getPieceColour()).add(capturedPiece);
         }
         if(move instanceof CastleMove) {
             undoMove();
@@ -187,7 +175,6 @@ public class Chessboard {
             piece.setHasMoved(false);
         }
         highlightLastMove(true);
-        //game.newTurn(); // may need this
     }
 
     public void highlightLastMove(boolean highlightOn) {
@@ -216,21 +203,18 @@ public class Chessboard {
 
     public ArrayList<Piece> getPieces() {
         ArrayList<Piece> allPieces= new ArrayList<>();
-        allPieces.addAll(whitePieces);
-        allPieces.addAll(blackPieces);
+        allPieces.addAll(getPieces(Colour.WHITE));
+        allPieces.addAll(getPieces(Colour.BLACK));
         return allPieces;
     }
-
-    public ArrayList<Piece> getPieces(boolean white) {
-        if(white) {
-            return whitePieces;
-        }
-        return blackPieces;
+    public ArrayList<Piece> getPieces(Colour colour) {
+        return game.getPlayer(colour).getPieces();
     }
-    public King getKing(boolean getWhite) {
-        if(getWhite) {
-            return whiteKing;
-        }
-        return blackKing;
+
+    public King getKing(Colour colour) {
+        return game.getPlayer(colour).getKing();
+    }
+    public Stack<Move> getMoves() {
+        return moves;
     }
 }

@@ -1,4 +1,5 @@
 import javax.swing.*;
+import java.util.Stack;
 
 /**
  * Created by alexsanchez on 2017-01-03.
@@ -45,6 +46,7 @@ public class Pawn extends Piece {
     }
 
     private void searchAttackingMoves(int dir) {
+        searchEnPassant(dir);
         for(int i = -1; i <= 1; i += 2) {
             Square targetSquare;
             int x = position.x + i;
@@ -66,6 +68,25 @@ public class Pawn extends Piece {
         Piece finalSquarePiece = move.getCapturedPiece();
         if(finalSquarePiece != null && finalSquarePiece.getPieceColour() != pieceColour) {
             possibleMoves.add(move);
+        }
+    }
+
+    private void searchEnPassant(int dir) {
+        Stack<Move> moves = chessboard.getMoves();
+        if(moves.empty()) {
+            return;
+        }
+        Move lastMove = moves.peek();
+        Piece enemyPiece = lastMove.getPiece();
+        if(enemyPiece instanceof Pawn && lastMove.isFirstTimePieceMoved()) {
+            int xDiff = Math.abs(position.x - enemyPiece.position.x);
+            int yDiff = Math.abs(position.y - enemyPiece.position.y);
+            if (xDiff == 1 && yDiff == 0) {
+                Square finalSquare = chessboard.getSquare(enemyPiece.position.x, enemyPiece.position.y + dir);
+                if (finalSquare.getHeldPiece() == null) {
+                    possibleMoves.add(new EnPassantMove(this, getSquare(), finalSquare, (Pawn) enemyPiece));
+                }
+            }
         }
     }
 

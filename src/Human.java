@@ -4,14 +4,13 @@ import java.util.ArrayList;
  * Created by alexsanchez on 2017-01-03.
  */
 public class Human extends Player {
-    public Human (Colour colour, Game game, Chessboard chessboard) {
-        super(colour, game, chessboard);
-        playerType = PlayerType.HUMAN;
+    public Human (Colour colour) {
+        super(colour, PlayerType.HUMAN);
     }
 
     public void makeMove() {
-        ArrayList<Piece> pieces = chessboard.getPieces();
-        for (Piece piece : pieces) {
+        ArrayList<Piece> allPieces = chessboard.getPieces();
+        for (Piece piece : allPieces) {
             piece.setSelectable(colour == piece.getPieceColour());
         }
     }
