@@ -29,7 +29,15 @@ public class Square {
         }
         this.borderColour = borderColour;
     }
+    public void isClicked(boolean isClicked) {
+        if(isClicked) {
+            borderColour = Color.PINK;
+        }
+        else {
+            borderColour = null;
+        }
 
+    }
     public void setHighlightColour(Color colour) {
         highlightColour = colour;
     }
@@ -39,6 +47,7 @@ public class Square {
         float alpha = 0.4f;
         return(AlphaComposite.getInstance(rule, alpha));
     }
+
 
     public Color getHighlightColour() { return highlightColour; }
     public Colour getColour() {

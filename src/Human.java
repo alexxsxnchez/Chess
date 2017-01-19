@@ -9,7 +9,7 @@ public class Human extends Player {
     }
 
     public void makeMove() {
-        ArrayList<Piece> allPieces = chessboard.getPieces();
+        ArrayList<Piece> allPieces = chessboard.getAllPieces();
         for (Piece piece : allPieces) {
             piece.setSelectable(colour == piece.getPieceColour());
         }

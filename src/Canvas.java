@@ -5,7 +5,6 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.image.*;
-import java.util.Locale;
 
 public class Canvas extends JPanel implements MouseListener, MouseMotionListener{
 
@@ -26,7 +25,9 @@ public class Canvas extends JPanel implements MouseListener, MouseMotionListener
     private Chessboard chessboard;
     private Game game;
     private Piece selectedPiece = null;
+    private boolean selectedPieceIsClicked = false;
     private Square focusedSquare = null;
+    private Square clickedSquare = null;
     private Point mousePosition = new Point();
     private Point selectedPiecePosition = new Point();
     private boolean isBoardFlipped = false;
@@ -48,6 +49,7 @@ public class Canvas extends JPanel implements MouseListener, MouseMotionListener
         super.paintComponent(g);
         drawBoard(g);
         drawPieces(g);
+        drawMessage(g);
     }
 
     private void drawBoard(Graphics graphics) {
@@ -109,7 +111,7 @@ public class Canvas extends JPanel implements MouseListener, MouseMotionListener
         Graphics2D g2SquarePieces = (Graphics2D) g.create();
         Composite originalComposite = g2SquarePieces.getComposite();
         g2SquarePieces.rotate(angle, width / 2, height / 2);
-        for(Piece piece : chessboard.getPieces()) {
+        for(Piece piece : chessboard.getAllPieces()) {
             if(piece != selectedPiece) {
                 Graphics2D g2SinglePiece = (Graphics2D) g2SquarePieces.create();
                 Point pieceCoor = getSquareCoor(piece.getPosition().x, piece.getPosition().y);
@@ -149,11 +151,41 @@ public class Canvas extends JPanel implements MouseListener, MouseMotionListener
         return shadow;
     }
 
+    private void drawMessage(Graphics g) {
+        GameState gameState = game.getGameState();
+        String text;
+        switch(gameState) {
+            case IN_PROGRESS:
+                return;
+            case DRAW:
+                text = "Draw";
+                break;
+            default:
+                text = "Checkmate";
+        }
+        int size = (int) (Math.min(width, height) * 0.1);
+        g.setFont(new Font(Font.MONOSPACED, Font.PLAIN, size));
+        g.drawString(text, width / 2 - (text.length() / 3 * size), height / 2);
+    }
+
     //========================================================
     // PIXEL CALCULATIONS
 
     private Point getSquareCoor(int x, int y) {
         return new Point(x * squareSize + boardX, y * squareSize + boardY);
+    }
+
+    private Point getPieceCoorForSquare(Square square) {
+        Point squareCoor = getSquareCoor(square.getPosition().x, square.getPosition().y);
+        int paddingDistance = piecePadding + pieceSize / 2;
+        int x = squareCoor.x + paddingDistance;
+        int y = squareCoor.y + paddingDistance;
+        // if board is flipped
+        if(isBoardFlipped) {
+            x = width - x;
+            y = height - y;
+        }
+        return new Point(x, y);
     }
 
     public void calculateSize() {
@@ -174,6 +206,10 @@ public class Canvas extends JPanel implements MouseListener, MouseMotionListener
 
     public void setChessboard(Chessboard chessboard) {
         this.chessboard = chessboard;
+    }
+
+    public Chessboard getChessboard() {
+        return chessboard;
     }
     /*
      * used for testing
@@ -221,13 +257,28 @@ public class Canvas extends JPanel implements MouseListener, MouseMotionListener
         selectedPiecePosition.y = mousePosition.y;
     }
 
+    private void clickOnSquare(Square square) {
+        if(clickedSquare != null) {
+            clickedSquare.isClicked(false);
+            clickedSquare = null;
+        }
+        if(selectedPieceIsClicked) {
+            clickedSquare = square;
+            if(focusedSquare == square) {
+                focusedSquare = null;
+            }
+            square.isClicked(true);
+        }
+    }
+
     private void focusOnSquare(MouseEvent e) {
-        if(focusedSquare != null) {
+        if(focusedSquare != null && focusedSquare != clickedSquare) {
             focusedSquare.setIsFocused(false);
+            focusedSquare = null;
         }
         setNewMousePosition(e);
         Square squareAtMouse = getSquareAtMouse();
-        if(squareAtMouse != null) {
+        if(squareAtMouse != null && squareAtMouse != clickedSquare) {
             focusedSquare = squareAtMouse;
             squareAtMouse.setIsFocused(true);
         }
@@ -235,6 +286,7 @@ public class Canvas extends JPanel implements MouseListener, MouseMotionListener
     }
 
     public void flipBoard() {
+        window.setUndoButtonEnabled(false);
         long initTime = System.currentTimeMillis();
         double initAngle = angle;
         int rotations = 0;
@@ -252,54 +304,37 @@ public class Canvas extends JPanel implements MouseListener, MouseMotionListener
         angle = Math.PI - initAngle;
         repaint();
         isBoardFlipped = !isBoardFlipped;
+        window.setUndoButtonEnabled(true);
     }
 
     private void translateSelectedPiece(Square dest) {
         long initTime = System.currentTimeMillis();
-        // distance at which speed of piece will become one pixel per frame
-        int slowDownDistance = piecePadding + pieceSize / 2;
+        window.setUndoButtonEnabled(false);
+        double paddingDistance = piecePadding + pieceSize / 2;
+        Point pieceCoor = getPieceCoorForSquare(dest);
+        double x = pieceCoor.getX();
+        double y = pieceCoor.getY();
+        double xDiff = x - selectedPiecePosition.getX();
+        double yDiff = y - selectedPiecePosition.getY();
 
-        Point squareCoor = getSquareCoor(dest.getPosition().x, dest.getPosition().y);
-        int x = squareCoor.x + slowDownDistance;
-        int y = squareCoor.y + slowDownDistance;
-        // if board is flipped
-        if(isBoardFlipped) {
-            x = width - x;
-            y = height - y;
-        }
-        int xDiff = x - selectedPiecePosition.x;
-        int yDiff = y - selectedPiecePosition.y;
-        int xDir = 0;
-        int yDir = 0;
-        int xDirMultiplier = 1;
-        int yDirMultiplier = 1;
-        int fastSpeed = 10;
-        if(xDiff < 0) {
-            xDirMultiplier = -1;
-        }
-        if(Math.abs(xDiff) > slowDownDistance) {
-            xDir = fastSpeed * xDirMultiplier;
-        }
-        if(yDiff < 0) {
-            yDirMultiplier = -1;
-        }
-        if(Math.abs(yDiff) > slowDownDistance) {
-            yDir = fastSpeed * yDirMultiplier;
+        // time of animation in millis
+        double translateTime = 500;
+        if(Math.abs(xDiff) < paddingDistance && Math.abs(yDiff) < paddingDistance) {
+            translateTime = 200;
         }
         while(selectedPiecePosition.x != x || selectedPiecePosition.y != y) {
             long timeNow = System.currentTimeMillis();
             if(timeNow - initTime > FPS) {
-                if(Math.abs(xDiff) <= slowDownDistance) {
-                    xDir = xDirMultiplier;
+                translateTime -= timeNow - initTime;
+                double xSpeed = xDiff / translateTime;
+                double ySpeed = yDiff / translateTime;
+                if(translateTime > FPS) {
+                    selectedPiecePosition.x += xSpeed * FPS;
+                    selectedPiecePosition.y += ySpeed * FPS;
                 }
-                if(Math.abs(yDiff) <= slowDownDistance) {
-                    yDir = yDirMultiplier;
-                }
-                if(xDiff != 0) {
-                    selectedPiecePosition.x += xDir;
-                }
-                if(yDiff != 0) {
-                    selectedPiecePosition.y += yDir;
+                else {
+                    selectedPiecePosition.x = (int) x;
+                    selectedPiecePosition.y = (int) y;
                 }
                 repaint();
                 paintImmediately(0, 0, width, height);
@@ -308,35 +343,10 @@ public class Canvas extends JPanel implements MouseListener, MouseMotionListener
                 yDiff = y - selectedPiecePosition.y;
             }
         }
+        window.setUndoButtonEnabled(true);
     }
 
-    @Override
-    public void mouseClicked(MouseEvent e) {
-
-    }
-
-    @Override
-    public void mousePressed(MouseEvent e) {
-        setNewMousePosition(e);
-        Square squareAtMouse = getSquareAtMouse();
-        if(squareAtMouse != null) {
-            Piece piece = squareAtMouse.getHeldPiece();
-            if(piece != null && piece.isSelectable()) {
-                selectedPiece = squareAtMouse.getHeldPiece();
-                updateSelectedPiecePosition();
-                selectedPiece.clearPossibleMoves();
-                selectedPiece.findPossibleMoves();
-                selectedPiece.highlightPossibleSquares(true);
-            }
-        }
-        repaint();
-    }
-
-    @Override
-    public void mouseReleased(MouseEvent e) {
-        if(selectedPiece == null) {
-            return;
-        }
+    private void mousePutDown() {
         boolean moveSuccessful = false;
         selectedPiece.highlightPossibleSquares(false);
         Square squareAtMouse = getSquareAtMouse();
@@ -360,14 +370,61 @@ public class Canvas extends JPanel implements MouseListener, MouseMotionListener
             translateSelectedPiece(selectedPiece.getSquare());
         }
         selectedPiece = null;
+        paintImmediately(0, 0, width, height);
         if(moveSuccessful) {
             game.newTurn();
         }
     }
 
+
+    @Override
+    public void mouseClicked(MouseEvent e) {}
+
+    @Override
+    public void mousePressed(MouseEvent e) {
+        Square squareAtMouse = getSquareAtMouse();
+        if(squareAtMouse == null) {
+            return;
+        }
+        Point pieceCoor = getPieceCoorForSquare(squareAtMouse);
+        int visualOffset = 5;
+        mousePosition.x = pieceCoor.x + visualOffset;
+        mousePosition.y = pieceCoor.y - visualOffset;
+
+
+        if(selectedPiece != null) {
+            selectedPieceIsClicked = false;
+            window.setUndoButtonEnabled(true);
+            mousePutDown();
+        }
+
+        Piece piece = squareAtMouse.getHeldPiece();
+        if(piece != null && piece.isSelectable()) {
+            if(selectedPiece == null) {
+                selectedPieceIsClicked = true;
+                window.setUndoButtonEnabled(false);
+            }
+
+            selectedPiece = squareAtMouse.getHeldPiece();
+            updateSelectedPiecePosition();
+            selectedPiece.clearPossibleMoves();
+            selectedPiece.findPossibleMoves();
+            selectedPiece.highlightPossibleSquares(true);
+        }
+        clickOnSquare(squareAtMouse);
+        repaint();
+    }
+
+    @Override
+    public void mouseReleased(MouseEvent e) {
+        if(selectedPiece != null && !selectedPieceIsClicked) {
+            mousePutDown();
+        }
+    }
+
     @Override
     public void mouseEntered(MouseEvent e) {
-        if(selectedPiece != null) {
+        if(selectedPiece != null && !selectedPieceIsClicked) {
             setNewMousePosition(e);
             updateSelectedPiecePosition();
             repaint();
@@ -376,7 +433,7 @@ public class Canvas extends JPanel implements MouseListener, MouseMotionListener
 
     @Override
     public void mouseExited(MouseEvent e) {
-        if(selectedPiece != null) {
+        if(selectedPiece != null && !selectedPieceIsClicked) {
             mousePosition.move(width + squareSize, height + squareSize);
             updateSelectedPiecePosition();
             repaint();
@@ -385,6 +442,7 @@ public class Canvas extends JPanel implements MouseListener, MouseMotionListener
 
     @Override
     public void mouseDragged(MouseEvent e) {
+        selectedPieceIsClicked = false;
         focusOnSquare(e);
         if(selectedPiece != null) {
             setNewMousePosition(e);

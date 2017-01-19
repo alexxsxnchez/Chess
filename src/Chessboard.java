@@ -11,6 +11,7 @@ public class Chessboard {
     public static final int NUM_OF_SQUARES = 8;
     private Square[][] boardSquares = new Square[NUM_OF_SQUARES][NUM_OF_SQUARES];
     private Stack<Move> moves = new Stack<>();
+    private Stack<Integer> fiftyMoveDrawCount = new Stack<>();
 
     public Chessboard(Game game) {
         this.game = game;
@@ -109,11 +110,13 @@ public class Chessboard {
     }
 
     public void makeMove(Move move) {
+        // get move data
         Piece piece = move.getPiece();
         Piece capturedPiece = move.getCapturedPiece();
         Square initSquare = move.getInitSquare();
         Square finalSquare = move.getFinalSquare();
 
+        // handle piece movement
         if(capturedPiece != null) {
             removePiece(capturedPiece);
         }
@@ -121,6 +124,7 @@ public class Chessboard {
         initSquare.setHeldPiece(null);
         piece.setHasMoved(true);
 
+        // handle special moves
         if(move instanceof CastleMove) {
             Rook castlingRook = ((CastleMove) move).getCastlingRook();
             castlingRook.castle();
@@ -129,18 +133,20 @@ public class Chessboard {
             PromotionMove promotionMove = (PromotionMove) move;
             PieceType promotionType = promotionMove.getPromotionType();
             removePiece(piece);
-
             Piece promotionPiece = addNewPiece(finalSquare.getPosition().x, finalSquare.getPosition().y,
                     piece.getPieceColour(), promotionType);
 
             promotionMove.setPromotionPiece(promotionPiece);
         }
+
         moves.push(move);
         highlightLastMove(true);
     }
 
     public void undoMove() {
-        if(moves.isEmpty()) return;
+        if(moves.isEmpty()) {
+            return;
+        }
         highlightLastMove(false);
         Move move = moves.pop();
 
@@ -177,6 +183,15 @@ public class Chessboard {
         highlightLastMove(true);
     }
 
+    public void takeBackLastTwoMoves() {
+        if(moves.size() < 2) {
+            return;
+        }
+        undoMove();
+        undoMove();
+        game.getPlayerToMove().makeMove();
+    }
+
     public void highlightLastMove(boolean highlightOn) {
         if(moves.empty()) return;
         Move lastMove = moves.pop();
@@ -197,11 +212,7 @@ public class Chessboard {
         return boardSquares[x][y];
     }
 
-    public Square[][] getBoardSquares() {
-        return boardSquares;
-    }
-
-    public ArrayList<Piece> getPieces() {
+    public ArrayList<Piece> getAllPieces() {
         ArrayList<Piece> allPieces= new ArrayList<>();
         allPieces.addAll(getPieces(Colour.WHITE));
         allPieces.addAll(getPieces(Colour.BLACK));
@@ -214,7 +225,12 @@ public class Chessboard {
     public King getKing(Colour colour) {
         return game.getPlayer(colour).getKing();
     }
+
     public Stack<Move> getMoves() {
         return moves;
+    }
+
+    public Square[][] getBoardSquares() {
+        return boardSquares;
     }
 }
