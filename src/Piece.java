@@ -138,7 +138,9 @@ public abstract class Piece {
     }
 
     public Move getMove(Square finalSquare) {
-        if(finalSquare == null) return null;
+        if(finalSquare == null) {
+            return null;
+        }
         for(Move move : possibleMoves) {
             if(move.getFinalSquare() == finalSquare) return move;
         }
@@ -160,7 +162,6 @@ public abstract class Piece {
             }
         }
     }
-
     public void setPosition(int x, int y) {
         position.x = x;
         position.y = y;

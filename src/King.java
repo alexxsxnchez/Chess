@@ -89,11 +89,7 @@ public class King extends Piece {
 
     public boolean isInCheck() {
         ArrayList<Move> enemyMoves = new ArrayList<>();
-        Colour enemyColour = Colour.WHITE;
-        if(pieceColour == Colour.WHITE) {
-            enemyColour = Colour.BLACK;
-        }
-        for(Piece enemyPiece : chessboard.getPieces(enemyColour)) {
+        for(Piece enemyPiece : chessboard.getPieces(pieceColour.getOpposite())) {
             enemyPiece.clearPossibleMoves();
             if(enemyPiece instanceof King) {
                 King enemyKing = (King) enemyPiece;

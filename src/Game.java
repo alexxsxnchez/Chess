@@ -4,15 +4,18 @@
 public class Game {
 
     private Canvas canvas;
+    private Window window;
     private Chessboard chessboard;
     private Player whitePlayer;
     private Player blackPlayer;
     private Player playerToMove;
+    private GameType gameType;
     private GameState gameState = GameState.IN_PROGRESS;
     private int fiftyMoveDrawCount = 0;
 
-    public Game(Canvas canvas) {
+    public Game(Canvas canvas, Window window) {
         this.canvas = canvas;
+        this.window = window;
         setupNewGame();
     }
     //TODO: add new game sound
@@ -20,14 +23,17 @@ public class Game {
         createPlayers();
         chessboard = new Chessboard(this);
         canvas.setChessboard(chessboard);
+        gameType = GameType.getGameType(whitePlayer.getPlayerType(), blackPlayer.getPlayerType());
         getPlayer(Colour.WHITE).setChessboard(chessboard);
         getPlayer(Colour.BLACK).setChessboard(chessboard);
-        playerToMove.makeMove();
+        //playerToMove.makeMove();
     }
 
     public void createPlayers() {
-        whitePlayer = new Human(Colour.WHITE);
         blackPlayer = new Human(Colour.BLACK);
+        //blackPlayer = new Human(Colour.BLACK);
+        whitePlayer = new Human(Colour.WHITE);
+        //gameType = GameType.getGameType(whitePlayer.getPlayerType(), blackPlayer.getPlayerType());
         playerToMove = whitePlayer;
     }
 
@@ -36,7 +42,9 @@ public class Game {
         updateGameState();
         //if(playerToMove instanceof Computer) {}
         if(gameState == GameState.IN_PROGRESS) {
-            canvas.flipBoard();
+            if(gameType == GameType.HUMAN_VS_HUMAN) {
+                canvas.flipBoard();
+            }
             playerToMove.makeMove();
         }
         else {
@@ -105,5 +113,11 @@ public class Game {
 
     public GameState getGameState() {
         return gameState;
+    }
+    public Window getWindow() {
+        return window;
+    }
+    public Canvas getCanvas() {
+        return canvas;
     }
 }

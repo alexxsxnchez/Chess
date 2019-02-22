@@ -3,5 +3,14 @@
  */
 public enum Colour {
     BLACK,
-    WHITE
+    WHITE;
+
+    public Colour getOpposite() {
+        switch(this) {
+            case BLACK: return WHITE;
+            case WHITE: return BLACK;
+            default: return null;
+        }
+
+    }
 }

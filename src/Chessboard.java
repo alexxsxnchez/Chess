@@ -193,7 +193,9 @@ public class Chessboard {
     }
 
     public void highlightLastMove(boolean highlightOn) {
-        if(moves.empty()) return;
+        if(moves.empty()) {
+            return;
+        }
         Move lastMove = moves.pop();
         Color highlightColour;
         if(highlightOn) {

@@ -38,6 +38,7 @@ public class Window extends JFrame {
             }
         });
         setVisible(true);
+        canvas.startGame();
         //canvas.flipBoard(); // testing functionality
     }
 

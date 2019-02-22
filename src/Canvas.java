@@ -31,6 +31,7 @@ public class Canvas extends JPanel implements MouseListener, MouseMotionListener
     private Point mousePosition = new Point();
     private Point selectedPiecePosition = new Point();
     private boolean isBoardFlipped = false;
+    private boolean mouseEventsEnabled = true;
 
     private static final int FPS = 30;
 
@@ -40,7 +41,17 @@ public class Canvas extends JPanel implements MouseListener, MouseMotionListener
         setBackground(Color.DARK_GRAY);
         addMouseListener(this);
         addMouseMotionListener(this);
-        this.game = new Game(this);
+        this.game = new Game(this, window);
+    }
+
+    public void startGame() {
+        repaint();
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
+        game.getPlayerToMove().makeMove();
     }
 
     //=======================================================
@@ -228,6 +239,9 @@ public class Canvas extends JPanel implements MouseListener, MouseMotionListener
     //==========================================================
     //MOUSE EVENTS AND ANIMATIONS
 
+    public void setMouseEventsEnabled(boolean enabled) {
+        mouseEventsEnabled = enabled;
+    }
     private Square getSquareAtMouse() {
         int x = mousePosition.x - boardX - 1; // minus one because boardx includes the first pixel of board
         int y = mousePosition.y - boardY - 1;
@@ -250,6 +264,10 @@ public class Canvas extends JPanel implements MouseListener, MouseMotionListener
     private void setNewMousePosition(MouseEvent e) {
         int yOffset = 2; // offset by two pixels due to the way the mouse interacts with the JFrame
         mousePosition.move(e.getX(), e.getY() - yOffset);
+    }
+
+    public void setSelectedPiece(Piece piece) {
+        selectedPiece = piece;
     }
 
     private void updateSelectedPiecePosition() {
@@ -306,8 +324,8 @@ public class Canvas extends JPanel implements MouseListener, MouseMotionListener
         isBoardFlipped = !isBoardFlipped;
         window.setUndoButtonEnabled(true);
     }
-
-    private void translateSelectedPiece(Square dest) {
+    //public void translatePiece(Piece piece, Square dest)
+    public void translateSelectedPiece(Square dest) {
         long initTime = System.currentTimeMillis();
         window.setUndoButtonEnabled(false);
         double paddingDistance = piecePadding + pieceSize / 2;
@@ -346,7 +364,7 @@ public class Canvas extends JPanel implements MouseListener, MouseMotionListener
         window.setUndoButtonEnabled(true);
     }
 
-    private void mousePutDown() {
+    private boolean mousePutDown() {
         boolean moveSuccessful = false;
         selectedPiece.highlightPossibleSquares(false);
         Square squareAtMouse = getSquareAtMouse();
@@ -371,9 +389,10 @@ public class Canvas extends JPanel implements MouseListener, MouseMotionListener
         }
         selectedPiece = null;
         paintImmediately(0, 0, width, height);
-        if(moveSuccessful) {
+        return moveSuccessful;
+        /*if(moveSuccessful) {
             game.newTurn();
-        }
+        }*/
     }
 
 
@@ -382,6 +401,10 @@ public class Canvas extends JPanel implements MouseListener, MouseMotionListener
 
     @Override
     public void mousePressed(MouseEvent e) {
+        if(!mouseEventsEnabled) {
+            return;
+        }
+        boolean moveFinished = false;
         Square squareAtMouse = getSquareAtMouse();
         if(squareAtMouse == null) {
             return;
@@ -395,7 +418,7 @@ public class Canvas extends JPanel implements MouseListener, MouseMotionListener
         if(selectedPiece != null) {
             selectedPieceIsClicked = false;
             window.setUndoButtonEnabled(true);
-            mousePutDown();
+            moveFinished = mousePutDown();
         }
 
         Piece piece = squareAtMouse.getHeldPiece();
@@ -413,10 +436,16 @@ public class Canvas extends JPanel implements MouseListener, MouseMotionListener
         }
         clickOnSquare(squareAtMouse);
         repaint();
+        if(moveFinished) {
+            game.newTurn();
+        }
     }
 
     @Override
     public void mouseReleased(MouseEvent e) {
+        if(!mouseEventsEnabled) {
+            return;
+        }
         if(selectedPiece != null && !selectedPieceIsClicked) {
             mousePutDown();
         }
@@ -424,6 +453,9 @@ public class Canvas extends JPanel implements MouseListener, MouseMotionListener
 
     @Override
     public void mouseEntered(MouseEvent e) {
+        if(!mouseEventsEnabled) {
+            return;
+        }
         if(selectedPiece != null && !selectedPieceIsClicked) {
             setNewMousePosition(e);
             updateSelectedPiecePosition();
@@ -433,6 +465,9 @@ public class Canvas extends JPanel implements MouseListener, MouseMotionListener
 
     @Override
     public void mouseExited(MouseEvent e) {
+        if(!mouseEventsEnabled) {
+            return;
+        }
         if(selectedPiece != null && !selectedPieceIsClicked) {
             mousePosition.move(width + squareSize, height + squareSize);
             updateSelectedPiecePosition();
@@ -442,6 +477,9 @@ public class Canvas extends JPanel implements MouseListener, MouseMotionListener
 
     @Override
     public void mouseDragged(MouseEvent e) {
+        if(!mouseEventsEnabled) {
+            return;
+        }
         selectedPieceIsClicked = false;
         focusOnSquare(e);
         if(selectedPiece != null) {
@@ -453,6 +491,9 @@ public class Canvas extends JPanel implements MouseListener, MouseMotionListener
 
     @Override
     public void mouseMoved(MouseEvent e) {
+        if(!mouseEventsEnabled) {
+            return;
+        }
         focusOnSquare(e);
     }
 }
