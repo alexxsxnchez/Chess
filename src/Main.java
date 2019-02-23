@@ -1,3 +1,5 @@
+import view.Window;
+
 import javax.swing.*;
 
 public class Main {
