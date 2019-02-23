@@ -88,13 +88,13 @@ public class Presenter {
         }
 
         view.highlightSquares(lastMoveSquares, false, true);
-        Move lastMove = chessboard.getMoves().peek();
         lastMoveSquares = new ArrayList<>();
-        if(lastMove != null) {
+        if(!chessboard.getMoves().empty()) {
+            Move lastMove = chessboard.getMoves().peek();
             lastMoveSquares.add(boardSquares[lastMove.getInitLocation().getX()][lastMove.getInitLocation().getY()]);
             lastMoveSquares.add(boardSquares[lastMove.getFinalLocation().getX()][lastMove.getFinalLocation().getY()]);
+            view.highlightSquares(lastMoveSquares, true, true);
         }
-        view.highlightSquares(lastMoveSquares, true, true);
         view.update();
     }
 
